@@ -60,6 +60,115 @@ To run the script:
 Set `num_state_qubits` to be the qubit number \(n\). In this case, the function will output a $(2^n \times 2^n)$ matrix. Perform simulations for qubit numbers $(n \leq 5)$. 
 
 **Question:** What is the maximum number of qubits \(M\) that you can simulate on your machine? State the model of your PC's processor and, if available, the graphics card or GPU.
+#### Code
+The first step is to load the important libraries
+ ```
+import numpy as np
+# pylint: disable=line-too-long
+from qiskit.algorithms import NumPyLinearSolver
+from qiskit.algorithms.linear_solvers.hhl import HHL
+from qiskit.algorithms.linear_solvers.matrices import TridiagonalToeplitz
+# %% [code]
+import numpy as np
+import matplotlib.pyplot as plt
+# Import Qiskit and the HHL-related classes.
+from qiskit import Aer
+from qiskit.algorithms import HHL
+from qiskit.algorithms.linear_solvers.matrices import TridiagonalToeplitz
+from qiskit.circuit.library import ZGate
+ ```
+
+Then, we want to create  TridiagonalToeplitz matrix, that depends on the number of qubits and solve it with the HHL algorihm
+```
+def simulate_hhl(num_state_qubits: int,
+                 a: float,
+                 b: float,
+                 vector: np.array = None,
+                 evolution_time: float = 1.0,
+                 trotter_steps: int = 1,
+                 tolerance: float = 0.01,
+                 name: str = 'tridi') -> tuple:
+    """
+    Simulates the HHL algorithm for solving the linear system A x = b,
+    where A is a Tridiagonal Toeplitz matrix of size 2^n x 2^n.
+
+    Parameters:
+        num_state_qubits (int): n (the number of qubits), yielding a matrix of size 2^n x 2^n.
+        a (float): Value for the main diagonal of A.
+        b (float): Value for the off-diagonals of A.
+        vector (np.array, optional): Right-hand side vector; if not provided, defaults to [1, 0, ..., 0].
+        evolution_time (float): Evolution time for the Hamiltonian simulation (passed to the matrix constructor).
+        trotter_steps (int): Number of trotter steps (passed to the matrix constructor).
+        tolerance (float): Tolerance for the matrix approximation.
+        name (str): Name for the matrix.
+
+    Returns:
+        tuple: (result, tridi_matrix, vector), where result is the HHL solution object.
+    """
+    try:
+        # Create the Tridiagonal Toeplitz matrix
+        tridi_matrix = TridiagonalToeplitz(num_state_qubits,
+                                           main_diag=a,
+                                           off_diag=b,
+                                           tolerance=tolerance,
+                                           evolution_time=evolution_time,
+                                           trotter_steps=trotter_steps,
+                                           name=name)
+        # Default vector if none provided
+        if vector is None:
+            vector = np.array([1] + [0]*(2**num_state_qubits - 1))
+        
+        # Create an instance of HHL and solve the system
+        hhl_solver = HHL()
+        result = hhl_solver.solve(tridi_matrix, vector)
+        
+        print(f"\n--- HHL Result for {num_state_qubits} qubits ---")
+        print(result)
+        print("\nQuantum circuit used to prepare the solution state:")
+        # This prints the quantum circuit. (Depending on Qiskit version, the attribute name may differ.)
+        print(result.state.draw())
+        print('Euclidean Norm: ',result.euclidean_norm)
+        print('Average: ',average_solution = HHL().solve(tridi_matrix,vector,AbsoluteAverage()))
+        return result, tridi_matrix, vector
+
+    except Exception as e:
+        print(f"Simulation failed for n = {num_state_qubits}. Error: {e}")
+        return None, None, None
+
+```
+
+To answer the question,  What is the maximum number of qubits \(M\) that you can simulate on your machine? We can create a small code:
+```
+max_qubits = 0
+for n in range(1, 20):
+    solution = simulate_hhl(n,a=1, b=-1/3)
+    if solution:
+        max_qubits = n
+    else:
+        break
+```
+That will give us a maximum number of 5.
+In my case, the computer used has the following specifications
+
+```
+# Get processor information
+processor_info = cpuinfo.get_cpu_info()
+print("Processor:", processor_info['brand_raw'])
+
+# Get GPU information
+gpus = GPUtil.getGPUs()
+if gpus:
+    for gpu in gpus:
+        print(f"GPU: {gpu.name}")
+else:
+    print("No GPU found.")
+
+```
+Output:
+```
+Processor: Apple M3 Max
+No GPU found.
+```
 
 ### Using Qiskit HHL Class
 
