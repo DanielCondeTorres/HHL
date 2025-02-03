@@ -57,7 +57,7 @@ To run the script:
 
 ### Simulating Different Qubit Numbers
 
-Set `num_state_qubits` to be the qubit number \(n\). In this case, the function will output a \(2^n \times 2^n\) matrix. Perform simulations for qubit numbers \(n \leq 5\). 
+Set `num_state_qubits` to be the qubit number \(n\). In this case, the function will output a $(2^n \times 2^n)$ matrix. Perform simulations for qubit numbers $(n \leq 5)$. 
 
 **Question:** What is the maximum number of qubits \(M\) that you can simulate on your machine? State the model of your PC's processor and, if available, the graphics card or GPU.
 
@@ -77,9 +77,9 @@ TridiagonalToeplitz(num_state_qubits, main_diag, off_diag, tolerance=0.01, evolu
 
 Solve the system for your chosen matrix and report the following properties of the solutions:
 
-1. **Vector norm** \(|x|\) of the solution vector (use the `euclidean_norm` property).
+1. **Vector norm** $(|x|)$ of the solution vector (use the `euclidean_norm` property).
 2. **Average of the vector entries**.
-3. **Inner product** \(\langle x | B | x \rangle\) where \(B\) is a Hermitian observable of your choice.
+3. **Inner product** $(\langle x | B | x \rangle)$ where $(B)$ is a Hermitian observable of your choice.
 4. **Verification**: Use the classical NumPy solver `linalg.LinearSolverResult` to verify your solutions.
 
 ### Influence of Matrix Entry Size on Performance
