@@ -88,7 +88,7 @@ Study the influence of performance concerning the size of the matrix entries for
 
 1. \(a, b\) are randomly chosen real numbers in the interval \([-1, 1]\).
 2. \(a, b\) are randomly chosen \(\log(n)\)-digit numbers in the interval \([-n, n]\).
-3. \(a, b\) are randomly chosen \(n\)-digit numbers in \([-2n, 2n]\).
+3. \(a, b\) are randomly chosen \(n\)-digit numbers in $([-2^n, 2^n])$.
 
 **Question:** What is the influence of the size of the range on the cost of running HHL?
 
