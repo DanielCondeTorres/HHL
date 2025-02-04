@@ -73,8 +73,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # Import Qiskit and the HHL-related classes.
 from qiskit import Aer
-from qiskit.algorithms import HHL
-from qiskit.algorithms.linear_solvers.matrices import TridiagonalToeplitz
+from qiskit.algorithms.linear_solvers.observables import AbsoluteAverage, MatrixFunctional
 from qiskit.circuit.library import ZGate
  ```
 
@@ -87,7 +86,8 @@ def simulate_hhl(num_state_qubits: int,
                  evolution_time: float = 1.0,
                  trotter_steps: int = 1,
                  tolerance: float = 0.01,
-                 name: str = 'tridi') -> tuple:
+                 name: str = 'tridi' ,
+                observable: np.array = MatrixFunctional(1, 1 / 2)) -> tuple:
     """
     Simulates the HHL algorithm for solving the linear system A x = b,
     where A is a Tridiagonal Toeplitz matrix of size 2^n x 2^n.
@@ -101,6 +101,7 @@ def simulate_hhl(num_state_qubits: int,
         trotter_steps (int): Number of trotter steps (passed to the matrix constructor).
         tolerance (float): Tolerance for the matrix approximation.
         name (str): Name for the matrix.
+        observable (np.array): Observable for the HHL solution.
 
     Returns:
         tuple: (result, tridi_matrix, vector), where result is the HHL solution object.
@@ -128,7 +129,10 @@ def simulate_hhl(num_state_qubits: int,
         # This prints the quantum circuit. (Depending on Qiskit version, the attribute name may differ.)
         print(result.state.draw())
         print('Euclidean Norm: ',result.euclidean_norm)
-        print('Average: ',average_solution = HHL().solve(tridi_matrix,vector,AbsoluteAverage()))
+        average_solution = HHL().solve(tridi_matrix,vector,AbsoluteAverage())
+        print('Average: ',average_solution)
+        functional_solution = HHL().solve(tridi_matrix, vector, observable)
+        print(f"Inner product of observable with B: {functional_solution.observable}")        
         return result, tridi_matrix, vector
 
     except Exception as e:
@@ -174,9 +178,17 @@ No GPU found.
 
 Use the Qiskit HHL class documented in the Jupyter notebook `hhl_tutorial.ipynb` to provide explicit quantum circuits that prepare a quantum solution for the linear system. To achieve this, use the `state` property of the `LinearSolverResult` object returned by `HHL.solve()` and the `print` command.
 
+
+This part is donde in the previous function, particularlly:
+
+
+```
+print(result.state.draw())
+```
+
 ### Estimating Properties for HHL Solutions
 
-Use the HHL quantum algorithm to estimate properties of the HHL solutions for different systems of equations. Choose a system \(Ax = b\) defined by a tridiagonal matrix \(A\) that you can solve using HHL with at most \(M \leq 5\) qubits. Generate it using the `TridiagonalToeplitz` class:
+Use the HHL quantum algorithm to estimate properties of the HHL solutions for different systems of equations. Choose a system $(Ax = b)$ defined by a tridiagonal matrix $(A)$ that you can solve using HHL with at most $(M \leq 5)$ qubits. Generate it using the `TridiagonalToeplitz` class:
 
 ```python
 TridiagonalToeplitz(num_state_qubits, main_diag, off_diag, tolerance=0.01, evolution_time=1.0, trotter_steps=1, name='tridi')
@@ -190,6 +202,23 @@ Solve the system for your chosen matrix and report the following properties of t
 2. **Average of the vector entries**.
 3. **Inner product** $(\langle x | B | x \rangle)$ where $(B)$ is a Hermitian observable of your choice.
 4. **Verification**: Use the classical NumPy solver `linalg.LinearSolverResult` to verify your solutions.
+
+Steps 1 to 3 are done in the same function here:
+
+```
+print('Euclidean Norm: ',result.euclidean_norm)
+average_solution = HHL().solve(tridi_matrix,vector,AbsoluteAverage())
+print('Average: ',average_solution)
+functional_solution = HHL().solve(tridi_matrix, vector, observable)
+print(f"Inner product of observable with B: {functional_solution.observable}")  
+```
+While the classical solution can be obtained from:
+
+```
+def verify_solution(matrix, vector):
+    classical_solution = NumPyLinearSolver().solve(matrix, vector / np.linalg.norm(vector))
+    print("Classical solution:", classical_solution.state)
+```
 
 ### Influence of Matrix Entry Size on Performance
 
