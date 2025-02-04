@@ -75,6 +75,8 @@ import matplotlib.pyplot as plt
 from qiskit import Aer
 from qiskit.algorithms.linear_solvers.observables import AbsoluteAverage, MatrixFunctional
 from qiskit.circuit.library import ZGate
+from qiskit.quantum_info import Statevector
+
  ```
 
 Then, we want to create  TridiagonalToeplitz matrix, that depends on the number of qubits and solve it with the HHL algorihm
