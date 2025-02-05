@@ -179,6 +179,73 @@ primero, segundo = generar_listas_binarias_a_decimal(result.state.num_qubits)
 print(primero,segundo)
 
 
+# %% [code]
+def generate_random_params(n: int, case: str) -> tuple:
+    """
+    Generate random parameters (a, b) for the matrix A based on the specified case.
+
+    Cases:
+      'a': a and b uniformly chosen in the interval [-1, 1].
+      'b': a and b are random numbers with approximately log10(n) significant digits in [-n, n].
+      'c': a and b are random numbers rounded to n digits (after decimal) in the interval [-2^n, 2^n].
+
+    Returns:
+      (a, b) as floats.
+    """
+    if case == 'a':
+        a = np.random.uniform(-1, 1)
+        b = np.random.uniform(-1, 1)
+    elif case == 'b':
+        # For small n, log10(n) is small; ensure at least 1 digit
+        digits = max(1, int(np.log10(n) + 1))
+        a = round(np.random.uniform(-n, n), digits)
+        b = round(np.random.uniform(-n, n), digits)
+    elif case == 'c':
+        # Round to n digits after decimal in [-2^n, 2^n]
+        a = round(np.random.uniform(-2**n, 2**n), n)
+        b = round(np.random.uniform(-2**n, 2**n), n)
+    else:
+        a = 1
+        b = -1/3
+    return a, b
+
+# %% [code]
+# Experiment: Influence of the matrix entry range on the performance of HHL.
+# We use a fixed qubit number (for example, n = 3) and test three cases.
+test_n = 3
+print(f"\n=== Testing influence of matrix entry range for n = {test_n} qubits ===")
+
+range_cases = ['a', 'b', 'c']
+range_results = {}
+
+for case in range_cases:
+    a_rand, b_rand = generate_random_params(test_n, case)
+    print(f"\nCase '{case}': Random parameters a = {a_rand}, b = {b_rand}")
+    
+    solution = simulate_hhl(num_state_qubits=test_n, a=a_rand, b=b_rand)
+    result, tridi_matrix, vector = solution
+    print('QUE DA; ',tridi_matrix)
+    if result is not None:
+
+        
+        norm, avg, inner_product= estimate_properties(result, tridi_matrix, vector)
+        classical_diff = verify_solution(tridi_matrix, vector, result)
+        print(f"Euclidean norm of solution: {norm}")
+        print(f"Average of vector entries: {avg}")
+        print(f"Inner product <x|B|x>: {inner_product}")
+        print(f"Difference between classical and HHL solution: {classical_diff}")
+        
+        range_results[case] = {
+            'a': a_rand,
+            'b': b_rand,
+            'norm': norm,
+            'average': avg,
+            'inner_product': inner_product,
+            'classical_diff': classical_diff
+        }
+
+
+
 
 
 
